@@ -25,6 +25,7 @@ var bar = {
 
 var fooComment = convert.fromObject(foo).toComment();
 var barComment = convert.fromObject(bar).toComment();
+
 var fooFile = {
     source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + fooComment
   , sourceFile: 'foo.js'
@@ -36,7 +37,7 @@ var barFile = {
 
 var offset = { line: 2 };
 var base64 = combine
-  .create()
+  .create('bundle.js')
   .addFile(fooFile, offset)
   .addFile(barFile, { line: offset.line + 8 })
   .base64();
