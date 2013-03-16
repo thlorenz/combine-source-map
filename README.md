@@ -40,6 +40,10 @@ console.log(sm);
      'console.log(alert \'alerts suck\')\n' ] }
 ```
 
+## Installation
+
+    npm install combine-source-map
+
 ## API
 
 ### create
