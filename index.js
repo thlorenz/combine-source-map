@@ -13,8 +13,9 @@ function hasInlinedSource(existingMap) {
   return existingMap.sourcesContent && !!existingMap.sourcesContent[0];
 }
 
-function Combiner() {
-  this.generator = null;
+function Combiner(file, sourceRoot) {
+  // since we include the original code in the map sourceRoot actually not needed
+  this.generator = createGenerator({ file: file || 'generated.js', sourceRoot: sourceRoot });
 }
 
 Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
@@ -45,9 +46,6 @@ Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, 
  * @param offset {Object} { line: {Number}, column: {Number} }
  */
 Combiner.prototype.addFile = function (opts, offset) {
-  // the first added map will determine the sourceRoot (ideally they'd all be the same)
-  // also since we include the original code in the map it is actually not needed
-  this.generator = this.generator || createGenerator({ sourceRoot: opts.sourceRoot || '' });
 
   offset = offset || {};
   if (!offset.hasOwnProperty('line'))  offset.line    =  0;
@@ -60,11 +58,11 @@ Combiner.prototype.addFile = function (opts, offset) {
     : this._addGeneratedMap(opts.sourceFile, opts.source, offset);
 };
 
-  /**
-  * @name base64
-  * @function
-  * @return {String} base64 encoded combined source map
-  */
+/**
+* @name base64
+* @function
+* @return {String} base64 encoded combined source map
+*/
 Combiner.prototype.base64 = function () {
   return this.generator.base64Encode();
 };
@@ -83,7 +81,7 @@ Combiner.prototype.comment = function () {
  * @function
  * @return {Object} source map combiner instance to which source maps can be added and later combined
  */
-exports.create = function () { return new Combiner(); };
+exports.create = function (file, sourceRoot) { return new Combiner(file, sourceRoot); };
 
 /**
  * @name removeComments
