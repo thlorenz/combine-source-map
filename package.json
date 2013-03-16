@@ -11,7 +11,11 @@
     "url": "git://github.com/thlorenz/combine-source-map.git"
   },
   "homepage": "https://github.com/thlorenz/combine-source-map",
-  "dependencies": {},
+  "dependencies": {
+    "convert-source-map": "~0.2.3",
+    "parse-base64vlq-mappings": "~0.1.1",
+    "inline-source-map": "~0.2.1"
+  },
   "devDependencies": {
     "trap": "~0.4.2"
   },
