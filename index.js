@@ -42,7 +42,7 @@ Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, 
  * 
  * @name addMap
  * @function
- * @param opts {Object} { sourceRoot: {String}, sourceFile: {String}, source: {String} }
+ * @param opts {Object} { sourceFile: {String}, source: {String} }
  * @param offset {Object} { line: {Number}, column: {Number} }
  */
 Combiner.prototype.addFile = function (opts, offset) {
@@ -79,7 +79,9 @@ Combiner.prototype.comment = function () {
 /**
  * @name create
  * @function
- * @return {Object} source map combiner instance to which source maps can be added and later combined
+ * @param file {String} optional name of the generated file
+ * @param sourceRoot { String} optional sourceRoot of the map to be generated
+ * @return {Object} Combiner instance to which source maps can be added and later combined
  */
 exports.create = function (file, sourceRoot) { return new Combiner(file, sourceRoot); };
 

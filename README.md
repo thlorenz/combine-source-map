@@ -46,13 +46,15 @@ console.log(sm);
 
 ## API
 
-### create
+### create()
 
 ```
 /**
  * @name create
  * @function
- * @return {Object} source map combiner instance to which source maps can be added and later combined
+ * @param file {String} optional name of the generated file
+ * @param sourceRoot { String} optional sourceRoot of the map to be generated
+ * @return {Object} Combiner instance to which source maps can be added and later combined
  */
 ```
 
@@ -67,7 +69,7 @@ console.log(sm);
  * 
  * @name addMap
  * @function
- * @param opts {Object} { sourceRoot: {String}, sourceFile: {String}, source: {String} }
+ * @param opts {Object} { sourceFile: {String}, source: {String} }
  * @param offset {Object} { line: {Number}, column: {Number} }
  */
 ```
