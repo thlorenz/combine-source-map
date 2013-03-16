@@ -1,10 +1,11 @@
 'use strict';
 /*jshint asi: true */
 
-var test = require('trap').test;
-var convert= require('convert-source-map');
-var parse = require('parse-base64vlq-mappings');
-var combine = require('..');
+var test         =  require('trap').test;
+var convert      =  require('convert-source-map');
+var parse        =  require('parse-base64vlq-mappings');
+var commentRegex =  require('convert-source-map').commentRegex;
+var combine      =  require('..');
 
 function checkMappings(foo, sm, lineOffset) {
     function inspect(obj, depth) {
@@ -120,5 +121,23 @@ test('add one file without inlined source', function (t) {
         original: { line: 7, column: 0 } } ]
     , 'generates mappings offset by the given line'
   )
-});
+})
 
+test('remove comments', function (t) {
+  var mapComment = convert.fromObject(foo).toComment();
+
+  function sourcemapComments(src) {
+    var matches = src.match(commentRegex);
+    return matches ? matches.length : 0;
+  }
+
+  t.equal(sourcemapComments('var a = 1;\n' + mapComment), 1);
+
+  [ ''
+  , 'var a = 1;\n' + mapComment
+  , 'var a = 1;\n' + mapComment + '\nvar b = 5;\n' + mapComment
+  ] .forEach(function (x) {
+    var removed = combine.removeComments(x)
+    t.equal(sourcemapComments(removed), 0)    
+  })
+})
