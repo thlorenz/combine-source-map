@@ -1,6 +1,6 @@
 'use strict';
 
-var parse           =  require('parse-base64vlq-mappings');
+var SMConsumer      =  require('source-map').SourceMapConsumer;
 var convert         =  require('convert-source-map');
 var createGenerator =  require('inline-source-map');
 
@@ -25,7 +25,25 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 };
 
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
-  var mappings = parse(existingMap.mappings); 
+  var mappings = [];
+  var consumer = new SMConsumer(existingMap);
+
+  consumer.eachMapping(function (mapping) {
+    // only set source if we have original position to handle edgecase (see inline-source-map tests)
+    mappings.push({
+      original: {
+        column: mapping.originalColumn
+      , line: mapping.originalLine
+      }
+    , generated: {
+        column: mapping.generatedColumn
+      , line: mapping.generatedLine
+      }
+    , source: mapping.originalColumn != null ? mapping.source : undefined
+    , name: mapping.name
+    });
+  });
+
   var originalSource = existingMap.sourcesContent[0]
     , originalSourceFile = existingMap.sources[0];
 
@@ -95,3 +113,4 @@ exports.removeComments = function (src) {
   if (!src.replace) return src;
   return src.replace(convert.commentRegex, '');
 };
+
