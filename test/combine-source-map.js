@@ -5,7 +5,7 @@ var test            =  require('tap').test;
 var convert         =  require('convert-source-map');
 var commentRegex    =  require('convert-source-map').commentRegex;
 var combine         =  require('..');
-var mappingsFromMap =  require('..').mappingsFromMap;
+var mappingsFromMap =  require('../lib/mappings-from-map');
 
 function checkMappings(foo, sm, lineOffset) {
     function inspect(obj, depth) {

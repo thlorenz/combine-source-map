@@ -1,8 +1,8 @@
 'use strict';
 
-var SMConsumer      =  require('source-map').SourceMapConsumer;
 var convert         =  require('convert-source-map');
 var createGenerator =  require('inline-source-map');
+var mappingsFromMap =  require('./lib/mappings-from-map');
 
 function resolveMap(source) {
   var gen = convert.fromSource(source);
@@ -25,7 +25,7 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 };
 
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
-  var mappings = exports.mappingsFromMap(existingMap);
+  var mappings = mappingsFromMap(existingMap);
 
   var originalSource = existingMap.sourcesContent[0]
     , originalSourceFile = existingMap.sources[0];
@@ -96,32 +96,3 @@ exports.removeComments = function (src) {
   if (!src.replace) return src;
   return src.replace(convert.commentRegex, '');
 };
-
-/**
- * @name mappingsFromMap
- * @function
- * @param map {Object} the JSON.parse()'ed map
- * @return {Array} array of mappings
- */
-exports.mappingsFromMap = function (map) {
-  var consumer = new SMConsumer(map);
-  var mappings = [];
-
-  consumer.eachMapping(function (mapping) {
-    // only set source if we have original position to handle edgecase (see inline-source-map tests)
-    mappings.push({
-      original: {
-        column: mapping.originalColumn
-      , line: mapping.originalLine
-      }
-    , generated: {
-        column: mapping.generatedColumn
-      , line: mapping.generatedLine
-      }
-    , source: mapping.originalColumn != null ? mapping.source : undefined
-    , name: mapping.name
-    });
-  });
-
-  return mappings;
-}
