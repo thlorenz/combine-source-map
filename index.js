@@ -96,3 +96,4 @@ exports.removeComments = function (src) {
   if (!src.replace) return src;
   return src.replace(convert.commentRegex, '');
 };
+
