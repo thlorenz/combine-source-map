@@ -97,3 +97,31 @@ exports.removeComments = function (src) {
   return src.replace(convert.commentRegex, '');
 };
 
+/**
+ * @name mappingsFromMap
+ * @function
+ * @param map {Object} the JSON.parse()'ed map
+ * @return {Array} array of mappings
+ */
+exports.mappingsFromMap = function (map) {
+  var consumer = new SMConsumer(map);
+  var mappings = [];
+
+  consumer.eachMapping(function (mapping) {
+    // only set source if we have original position to handle edgecase (see inline-source-map tests)
+    mappings.push({
+      original: {
+        column: mapping.originalColumn
+      , line: mapping.originalLine
+      }
+    , generated: {
+        column: mapping.generatedColumn
+      , line: mapping.generatedLine
+      }
+    , source: mapping.originalColumn != null ? mapping.source : undefined
+    , name: mapping.name
+    });
+  });
+
+  return mappings;
+}
