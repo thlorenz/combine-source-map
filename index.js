@@ -25,24 +25,7 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 };
 
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
-  var mappings = [];
-  var consumer = new SMConsumer(existingMap);
-
-  consumer.eachMapping(function (mapping) {
-    // only set source if we have original position to handle edgecase (see inline-source-map tests)
-    mappings.push({
-      original: {
-        column: mapping.originalColumn
-      , line: mapping.originalLine
-      }
-    , generated: {
-        column: mapping.generatedColumn
-      , line: mapping.generatedLine
-      }
-    , source: mapping.originalColumn != null ? mapping.source : undefined
-    , name: mapping.name
-    });
-  });
+  var mappings = exports.mappingsFromMap(existingMap);
 
   var originalSource = existingMap.sourcesContent[0]
     , originalSourceFile = existingMap.sources[0];
@@ -57,7 +40,7 @@ Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, 
  * If source contains a source map comment that has the source of the original file inlined it will offset these
  * mappings and include them.
  * If no source map comment is found or it has no source inlined, mappings for the file will be generated and included
- * 
+ *
  * @name addMap
  * @function
  * @param opts {Object} { sourceFile: {String}, source: {String} }
@@ -106,7 +89,7 @@ exports.create = function (file, sourceRoot) { return new Combiner(file, sourceR
 /**
  * @name removeComments
  * @function
- * @param src 
+ * @param src
  * @return {String} src with all sourceMappingUrl comments removed
  */
 exports.removeComments = function (src) {
@@ -114,3 +97,31 @@ exports.removeComments = function (src) {
   return src.replace(convert.commentRegex, '');
 };
 
+/**
+ * @name mappingsFromMap
+ * @function
+ * @param map {Object} the JSON.parse()'ed map
+ * @return {Array} array of mappings
+ */
+exports.mappingsFromMap = function (map) {
+  var consumer = new SMConsumer(map);
+  var mappings = [];
+
+  consumer.eachMapping(function (mapping) {
+    // only set source if we have original position to handle edgecase (see inline-source-map tests)
+    mappings.push({
+      original: {
+        column: mapping.originalColumn
+      , line: mapping.originalLine
+      }
+    , generated: {
+        column: mapping.generatedColumn
+      , line: mapping.generatedLine
+      }
+    , source: mapping.originalColumn != null ? mapping.source : undefined
+    , name: mapping.name
+    });
+  });
+
+  return mappings;
+}
