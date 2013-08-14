@@ -13,8 +13,8 @@
   "homepage": "https://github.com/thlorenz/combine-source-map",
   "dependencies": {
     "convert-source-map": "~0.2.3",
-    "parse-base64vlq-mappings": "~0.1.1",
-    "inline-source-map": "~0.2.1"
+    "inline-source-map": "~0.2.1",
+    "source-map":"~0.1.27"
   },
   "devDependencies": {
     "tap": "~0.4.3"
