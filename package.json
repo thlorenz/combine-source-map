@@ -12,9 +12,9 @@
   },
   "homepage": "https://github.com/thlorenz/combine-source-map",
   "dependencies": {
-    "convert-source-map": "~0.2.3",
-    "inline-source-map": "~0.2.1",
-    "source-map": "~0.1.27"
+    "inline-source-map": "~0.3.0",
+    "convert-source-map": "~0.3.0",
+    "source-map": "~0.1.31"
   },
   "devDependencies": {
     "tap": "~0.4.3"
