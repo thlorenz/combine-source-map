@@ -26,12 +26,22 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
   var mappings = mappingsFromMap(existingMap);
+  var self = this;
 
-  var originalSource = existingMap.sourcesContent[0]
-    , originalSourceFile = existingMap.sources[0];
+  var newMappings = mappings.reduce(function (acc, m) {
+    var s = (m.original) ? (m.source || sourceFile) : undefined;
+    if (!acc[s]) acc[s] = [];
+    acc[s].push(m);
+    return acc;
+  }, {});
 
-  this.generator.addMappings(originalSourceFile || sourceFile, mappings, offset);
-  this.generator.addSourceContent(originalSourceFile || sourceFile, originalSource);
+  Object.keys(newMappings).forEach(function (s) {
+    var sourceIndex = existingMap.sources.indexOf(s);
+    var originalSource = existingMap.sourcesContent[sourceIndex];
+    self.generator.addMappings(s, newMappings[s], offset);
+    self.generator.addSourceContent(s, originalSource);
+  });
+
   return this;
 };
 
