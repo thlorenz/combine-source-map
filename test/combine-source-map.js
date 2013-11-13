@@ -151,3 +151,41 @@ test('remove comments', function (t) {
   })
   t.end()
 })
+
+
+var generated = {
+  version        : 3,
+  file           : 'generated.js',
+  sourceRoot     : '',
+  sources        : [ 'bar.coffee', 'baz.coffee' ],
+  names          : [],
+  mappings       : ';AAAA,CAAQ,EAAR,IAAO;;;;ACAP,CAAO,EAAU,GAAX,CAAN',
+  sourcesContent :
+      [ 'console.log(require \'./baz\')\n',
+        'module.exports = \'buzz\'\n' ] };
+
+test('add one file with multiple inlined sources', function (t) {
+
+  var comment = convert.fromObject(generated).toComment();
+  var file = {
+      id: 'xyz'
+    , source: ';(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module \'"+o+"\'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){\nconsole.log(require(\'./baz\'));\n\n\n},{"./baz":2}],2:[function(require,module,exports){\nmodule.exports = \'buzz\';\n\n\n},{}]},{},[1])' + '\n' + comment
+    , sourceFile: 'generated.js'
+  };
+
+  var lineOffset = 3
+  var base64 = combine.create()
+    .addFile(file, { line: lineOffset })
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+  var res = checkMappings(generated, sm, lineOffset);
+
+  t.ok(res.genLinesOffset, 'all generated lines are offset properly and columns unchanged')
+  t.ok(res.origLinesSame, 'all original lines and columns are unchanged')
+  t.equal(sm.sourcesContent[0], generated.sourcesContent[0], 'includes the original source')
+  t.equal(sm.sourcesContent[1], generated.sourcesContent[1], 'includes the other original source')
+  t.equal(sm.sources[0], 'bar.coffee', 'includes original filename')
+  t.equal(sm.sources[1], 'baz.coffee', 'includes other original filename')
+  t.end()
+});
