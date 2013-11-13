@@ -26,14 +26,14 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
   var mappings = mappingsFromMap(existingMap);
-  var newMappings = {};
   var self = this;
 
-  mappings.forEach(function (m) {
+  var newMappings = mappings.reduce(function (acc, m) {
     var s = (m.original) ? (m.source || sourceFile) : undefined;
-    if (!newMappings[s]) newMappings[s] = [];
-    newMappings[s].push(m);
-  });
+    if (!acc[s]) acc[s] = [];
+    acc[s].push(m);
+    return acc;
+  }, {});
 
   Object.keys(newMappings).forEach(function (s) {
     var sourceIndex = existingMap.sources.indexOf(s);
