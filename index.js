@@ -27,11 +27,20 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
   var mappings = mappingsFromMap(existingMap);
 
-  var originalSource = existingMap.sourcesContent[0]
-    , originalSourceFile = existingMap.sources[0];
+  // Add the all of the source from the maps.
+  for (var i = 0, len = existingMap.sources.length; i < len; i++){
+    if (!existingMap.sourcesContent) continue;
 
-  this.generator.addMappings(originalSourceFile || sourceFile, mappings, offset);
-  this.generator.addSourceContent(originalSourceFile || sourceFile, originalSource);
+    this.generator.addSourceContent(existingMap.sources[i], existingMap.sourcesContent[i]);
+  }
+
+  // Add the mappings, preserving the original mapping 'source'.
+  mappings.forEach(function(mapping){
+    // Add the mappings one at a time because 'inline-source-map' doesn't properly handle
+    // mapping source filenames.
+    this.generator.addMappings(mapping.source, [mapping], offset);
+  }, this);
+
   return this;
 };
 
