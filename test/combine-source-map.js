@@ -74,8 +74,8 @@ test('add one file with inlined source', function (t) {
 
   t.ok(res.genLinesOffset, 'all generated lines are offset properly and columns unchanged')
   t.ok(res.origLinesSame, 'all original lines and columns are unchanged')
-  t.equal(sm.sourcesContent[0], foo.sourcesContent[0], 'includes the original source')
-  t.equal(sm.sources[0], 'foo.coffee', 'includes original filename')
+  t.deepEqual(sm.sourcesContent, foo.sourcesContent, 'includes the original source')
+  t.deepEqual(sm.sources, ['foo.coffee'], 'includes original filename')
   t.end()
 });
 
@@ -101,8 +101,8 @@ test('add one file without inlined source', function (t) {
   var sm = convert.fromBase64(base64).toObject();
   var mappings = mappingsFromMap(sm);
 
-  t.equal(sm.sourcesContent[0], file.source, 'includes the generated source')
-  t.equal(sm.sources[0], 'foo.js', 'includes generated filename')
+  t.deepEqual(sm.sourcesContent, [file.source], 'includes the generated source')
+  t.deepEqual(sm.sources, ['foo.js'], 'includes generated filename')
 
   t.deepEqual(
       mappings
@@ -131,6 +131,67 @@ test('add one file without inlined source', function (t) {
   )
   t.end()
 })
+
+test('add one file with inlined sources from multiple files', function(t){
+  var gen1Map = {
+    version: 3,
+    sources: [ 'one.js', 'two.js' ],
+    names: [],
+    mappings: 'AAAA;ACAA',
+    sourcesContent: [ 'console.log(1);', 'console.log(2);' ]
+  };
+
+  var gen2Map = {
+    version: 3,
+    sources: [ 'three.js', 'four.js' ],
+    names: [],
+    mappings: 'AAAA;ACAA',
+    sourcesContent: [ 'console.log(3);', 'console.log(4);' ]
+  };
+
+  var base64 = combine.create()
+    .addFile({
+      source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
+      sourceFile: 'gen1.js'
+    })
+    .addFile({
+      source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
+      sourceFile: 'gen2.js'
+    }, {line: 2})
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+
+
+  t.deepEqual(sm.sources, ['one.js', 'two.js', 'three.js', 'four.js'], 'include the correct source');
+
+  t.deepEqual(sm.sourcesContent, [
+    'console.log(1);',
+    'console.log(2);',
+    'console.log(3);',
+    'console.log(4);'
+  ], 'include the correct source file content');
+
+  t.deepEqual(
+      mappingsFromMap(sm)
+    , [ { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 1 },
+        source: 'one.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 2 },
+        source: 'two.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 3 },
+        source: 'three.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 4 },
+        source: 'four.js',
+        name: undefined } ], 'should properly map multiple files');
+  t.end()
+});
 
 test('remove comments', function (t) {
   var mapComment = convert.fromObject(foo).toComment();
