@@ -94,5 +94,5 @@ exports.create = function (file, sourceRoot) { return new Combiner(file, sourceR
  */
 exports.removeComments = function (src) {
   if (!src.replace) return src;
-  return src.replace(convert.commentRegex, '');
+  return src.replace(convert.commentRegex, '').replace(convert.mapFileCommentRegex, '');
 };
