@@ -132,7 +132,7 @@ test('add one file without inlined source', function (t) {
   t.end()
 })
 
-test('add one file with inlined sources from multiple files', function(t){
+test('add one file with inlined sources from multiple files', function(t) {
   var gen1Map = {
     version: 3,
     sources: [ 'one.js', 'two.js' ],
@@ -189,6 +189,91 @@ test('add one file with inlined sources from multiple files', function(t){
       { original: { column: 0, line: 1 },
         generated: { column: 0, line: 4 },
         source: 'four.js',
+        name: undefined } ], 'should properly map multiple files');
+  t.end()
+});
+
+test('relative path from multiple files', function(t) {
+  // Folder structure as follows:
+  //
+  //  project
+  //   +- src
+  //    +- package1
+  //     +- sub
+  //      -- one.js
+  //      -- two.js
+  //    +- package2
+  //     +- sub
+  //      -- three.js
+  //      -- four.js
+  //   +- gen
+  //    +- gen1.js
+  //    +- gen2.js
+  //   -- combined.js
+  //
+  // Where 'one.js', 'two.js' were combined to 'gen1.js'
+  // and 'three.js', 'four.js' were combined to 'gen2.js'.
+  // Now 'gen1.js' and 'gen2.js' are being combined from
+  // the project root folder.
+  var gen1Map = {
+    version: 3,
+    sources: [ 'sub/one.js', 'sub/two.js' ],
+    names: [],
+    mappings: 'AAAA;ACAA',
+    sourcesContent: [ 'console.log(1);', 'console.log(2);' ],
+    sourceRoot: '../src/package1'
+  };
+
+  var gen2Map = {
+    version: 3,
+    sources: [ 'sub/three.js', 'sub/four.js' ],
+    names: [],
+    mappings: 'AAAA;ACAA',
+    sourcesContent: [ 'console.log(3);', 'console.log(4);' ],
+    sourceRoot: '../src/package2'
+  };
+
+  var base64 = combine.create()
+    .addFile({
+      source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
+      sourceFile: 'gen/gen1.js'
+    })
+    .addFile({
+      source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
+      sourceFile: 'gen/gen2.js'
+    }, {line: 2})
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+
+  t.deepEqual(sm.sources, ['src/package1/sub/one.js', 'src/package1/sub/two.js', 
+    'src/package2/sub/three.js', 'src/package2/sub/four.js'], 
+    'include the correct source');
+
+  t.deepEqual(sm.sourcesContent, [
+    'console.log(1);',
+    'console.log(2);',
+    'console.log(3);',
+    'console.log(4);'
+  ], 'include the correct source file content');
+
+  t.deepEqual(
+      mappingsFromMap(sm)
+    , [ { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 1 },
+        source: 'src/package1/sub/one.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 2 },
+        source: 'src/package1/sub/two.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 3 },
+        source: 'src/package2/sub/three.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 4 },
+        source: 'src/package2/sub/four.js',
         name: undefined } ], 'should properly map multiple files');
   t.end()
 });

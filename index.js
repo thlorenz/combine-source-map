@@ -1,8 +1,48 @@
 'use strict';
 
+var path            =  require('path');
 var convert         =  require('convert-source-map');
 var createGenerator =  require('inline-source-map');
 var mappingsFromMap =  require('./lib/mappings-from-map');
+
+function isAbsolutePath(p) {
+  return /^(?:\/|[a-z]+:\/\/)/.test(p)
+	|| path.resolve(p) == path.normalize(p);
+}
+
+/**
+ * Rebases a relative path in 'sourceFile' to be relative
+ * to the path where 'sourceFile' is located.
+ * 
+ * This is necessary before adding relative paths to the
+ * new combined map to ensure all paths are relative to their
+ * original source.
+ * 
+ * The 'sourceRoot' from the original source map is joined
+ * as well to ensure the complete path.
+ *
+ * Resulting paths that are absolute are passed along directly.
+ *
+ * @param sourceFile {String} path to the original source file that references a map
+ * @param relativeRoot {String} sourceRoot in sourceFile's map to combine with relativePath
+ * @param relativePath {String} source path from sourceFile's map
+ */
+function rebaseRelativePath(sourceFile, relativeRoot, relativePath) {
+  if (!relativePath) {
+    return relativePath;
+  }
+
+  // join relative path to root (e.g. 'src/' + 'file.js')
+  var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
+
+  // absolute path does not need rebasing
+  if (isAbsolutePath(relativeRootedPath)) {
+    return relativeRootedPath;
+  }
+
+  // make relative to source file
+  return path.join(path.dirname(sourceFile), relativeRootedPath);
+}
 
 function resolveMap(source) {
   var gen = convert.fromSource(source);
@@ -27,18 +67,22 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
 Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
   var mappings = mappingsFromMap(existingMap);
 
-  // Add the all of the source from the maps.
-  for (var i = 0, len = existingMap.sources.length; i < len; i++){
+  // add all of the sources from the map
+  for (var i = 0, len = existingMap.sources.length; i < len; i++) {
     if (!existingMap.sourcesContent) continue;
 
-    this.generator.addSourceContent(existingMap.sources[i], existingMap.sourcesContent[i]);
+    this.generator.addSourceContent(
+      rebaseRelativePath(sourceFile, existingMap.sourceRoot, existingMap.sources[i]),
+      existingMap.sourcesContent[i]);
   }
 
-  // Add the mappings, preserving the original mapping 'source'.
-  mappings.forEach(function(mapping){
-    // Add the mappings one at a time because 'inline-source-map' doesn't properly handle
-    // mapping source filenames.
-    this.generator.addMappings(mapping.source, [mapping], offset);
+  // add the mappings, preserving the original mapping 'source'
+  mappings.forEach(function(mapping) {
+    // Add the mappings one at a time because 'inline-source-map' doesn't handle
+    // mapping source filenames. The mapping.source already takes sourceRoot into account
+    // per the SMConsumer.eachMapping function, so pass null for the root here.
+    this.generator.addMappings(
+      rebaseRelativePath(sourceFile, null, mapping.source), [mapping], offset);
   }, this);
 
   return this;
@@ -90,7 +134,7 @@ Combiner.prototype.comment = function () {
  * @name create
  * @function
  * @param file {String} optional name of the generated file
- * @param sourceRoot { String} optional sourceRoot of the map to be generated
+ * @param sourceRoot {String} optional sourceRoot of the map to be generated
  * @return {Object} Combiner instance to which source maps can be added and later combined
  */
 exports.create = function (file, sourceRoot) { return new Combiner(file, sourceRoot); };
