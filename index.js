@@ -2,6 +2,7 @@
 
 var path            =  require('path');
 var convert         =  require('convert-source-map');
+var memoize         =  require('lodash.memoize');
 var pathIsAbsolute  =  require('path-is-absolute');
 var createGenerator =  require('inline-source-map');
 var mappingsFromMap =  require('./lib/mappings-from-map');
@@ -25,7 +26,7 @@ var protocolRx = /^[a-z]+:\/\//;
  * @param relativeRoot {String} sourceRoot in sourceFile's map to combine with relativePath
  * @param relativePath {String} source path from sourceFile's map
  */
-function rebaseRelativePath(sourceFile, relativeRoot, relativePath) {
+var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath) {
   if (!relativePath) {
     return relativePath;
   }
@@ -41,7 +42,9 @@ function rebaseRelativePath(sourceFile, relativeRoot, relativePath) {
 
   // make relative to source file
   return path.join(path.dirname(sourceFile), relativeRootedPath);
-}
+}, function(a, b, c) {
+  return a + '::' + b + '::' + c;
+});
 
 function resolveMap(source) {
   var gen = convert.fromSource(source);
