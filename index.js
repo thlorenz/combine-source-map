@@ -2,13 +2,11 @@
 
 var path            =  require('path');
 var convert         =  require('convert-source-map');
+var pathIsAbsolute  =  require('path-is-absolute');
 var createGenerator =  require('inline-source-map');
 var mappingsFromMap =  require('./lib/mappings-from-map');
 
-function isAbsolutePath(p) {
-  return /^(?:\/|[a-z]+:\/\/)/.test(p)
-	|| path.resolve(p) == path.normalize(p);
-}
+var protocolRx = /^[a-z]+:\/\//;
 
 /**
  * Rebases a relative path in 'sourceFile' to be relative
@@ -35,8 +33,9 @@ function rebaseRelativePath(sourceFile, relativeRoot, relativePath) {
   // join relative path to root (e.g. 'src/' + 'file.js')
   var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
 
-  // absolute path does not need rebasing
-  if (isAbsolutePath(relativeRootedPath)) {
+  if (sourceFile === relativeRootedPath ||    // same path,
+      pathIsAbsolute(relativeRootedPath) ||   // absolute path, nor
+      protocolRx.test(relativeRootedPath)) {  // absolute protocol need rebasing
     return relativeRootedPath;
   }
 

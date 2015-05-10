@@ -278,6 +278,54 @@ test('relative path from multiple files', function(t) {
   t.end()
 });
 
+test('relative path when source and file name are the same', function(t) {
+  var gen1Map = {
+    version: 3,
+    sources: [ 'a/b/one.js' ],
+    names: [],
+    mappings: 'AAAA',
+    file: 'a/b/one.js',
+    sourcesContent: [ 'console.log(1);\n' ]
+  };
+
+  var gen2Map = {
+    version: 3,
+    sources: [ 'a/b/two.js' ],
+    names: [],
+    mappings: 'AAAA',
+    file: 'a/b/two.js',
+    sourcesContent: [ 'console.log(2);\n' ]
+  };
+
+  var base64 = combine.create()
+    .addFile({
+      source: 'console.log(1);\n' + convert.fromObject(gen1Map).toComment(),
+      sourceFile: 'a/b/one.js'
+    })
+    .addFile({
+      source: 'console.log(2);\n' + convert.fromObject(gen2Map).toComment(),
+      sourceFile: 'a/b/two.js'
+    }, {line: 1})
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+
+  t.deepEqual(sm.sources, ['a/b/one.js', 'a/b/two.js'],
+    'include the correct source');
+
+  t.deepEqual(
+      mappingsFromMap(sm)
+    , [ { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 1 },
+        source: 'a/b/one.js',
+        name: undefined },
+      { original: { column: 0, line: 1 },
+        generated: { column: 0, line: 2 },
+        source: 'a/b/two.js',
+        name: undefined } ], 'should properly map multiple files');
+  t.end()
+});
+
 test('remove comments', function (t) {
   var mapComment = convert.fromObject(foo).toComment();
 
