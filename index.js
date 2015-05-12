@@ -3,8 +3,8 @@
 var path            =  require('path');
 var convert         =  require('convert-source-map');
 var memoize         =  require('lodash.memoize');
-var pathIsAbsolute  =  require('path-is-absolute');
 var createGenerator =  require('inline-source-map');
+var pathIsAbsolute  =  require('./lib/path-is-absolute');
 var mappingsFromMap =  require('./lib/mappings-from-map');
 
 var protocolRx = /^[a-z]+:\/\//;

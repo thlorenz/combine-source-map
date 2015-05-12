@@ -12,10 +12,9 @@
   },
   "homepage": "https://github.com/thlorenz/combine-source-map",
   "dependencies": {
-    "convert-source-map": "^1.1.0",
+    "convert-source-map": "~1.1.0",
     "inline-source-map": "~0.5.0",
-    "lodash.memoize": "^3.0.3",
-    "path-is-absolute": "^1.0.0",
+    "lodash.memoize": "~3.0.3",
     "source-map": "~0.4.2"
   },
   "devDependencies": {
