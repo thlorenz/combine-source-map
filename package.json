@@ -15,7 +15,7 @@
     "convert-source-map": "~1.1.0",
     "inline-source-map": "~0.6.0",
     "lodash.memoize": "~3.0.3",
-    "source-map": "0.4.2"
+    "source-map": "~0.5.3"
   },
   "devDependencies": {
     "tap": "~0.4.3"
