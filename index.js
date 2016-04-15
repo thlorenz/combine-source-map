@@ -32,7 +32,7 @@ var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath
   }
 
   // join relative path to root (e.g. 'src/' + 'file.js')
-  var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
+  var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath).replace(/\\/g, '/') : relativePath;
 
   if (sourceFile === relativeRootedPath ||    // same path,
       pathIsAbsolute(relativeRootedPath) ||   // absolute path, nor
@@ -41,7 +41,7 @@ var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath
   }
 
   // make relative to source file
-  return path.join(path.dirname(sourceFile), relativeRootedPath);
+  return path.join(path.dirname(sourceFile), relativeRootedPath).replace(/\\/g, '/');
 }, function(a, b, c) {
   return a + '::' + b + '::' + c;
 });
