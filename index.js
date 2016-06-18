@@ -34,14 +34,19 @@ var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath
   // join relative path to root (e.g. 'src/' + 'file.js')
   var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
 
+  // Ultimately these will be used in URLs so normalise to URL path separators before comparison
+  relativeRootedPath = relativeRootedPath.replace(/\\/g, '/');
+  sourceFile = sourceFile.replace(/\\/g, '/');
+
   if (sourceFile === relativeRootedPath ||    // same path,
+      path.dirname(sourceFile) === path.dirname(relativeRootedPath) || // same dir, different file (e.g. foo.ts > foo.js)
       pathIsAbsolute(relativeRootedPath) ||   // absolute path, nor
       protocolRx.test(relativeRootedPath)) {  // absolute protocol need rebasing
     return relativeRootedPath;
   }
 
   // make relative to source file
-  return path.join(path.dirname(sourceFile), relativeRootedPath);
+  return path.join(path.dirname(sourceFile), relativeRootedPath).replace(/\\/g, '/');
 }, function(a, b, c) {
   return a + '::' + b + '::' + c;
 });

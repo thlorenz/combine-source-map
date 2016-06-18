@@ -345,3 +345,64 @@ test('remove comments', function (t) {
   })
   t.end()
 })
+
+test('relative path mainipulation copes with changing file extension', function (t) {
+
+  var foo = {
+    version        :  3,
+    file           :  'bar/foo.js',
+    sourceRoot     :  '',
+    sources        :  [ 'bar/foo.coffee' ],
+    names          :  [],
+    mappings       :  ';AAAA;CAAA;CAAA,CAAA,CAAA,IAAO,GAAK;CAAZ',
+    sourcesContent :  [ 'console.log(require \'./bar.js\')\n' ] };
+  
+  var mapComment = convert.fromObject(foo).toComment();
+
+  var file = {
+      id: 'xyz'
+    , source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + mapComment
+    , sourceFile: 'bar/foo.js'
+  };
+
+  var lineOffset = 3
+  var base64 = combine.create()
+    .addFile(file, { line: lineOffset })
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+
+  t.deepEqual(sm.sources, ['bar/foo.coffee'], 'includes original relative file path')
+  t.end()
+})
+
+test('relative path mainipulation generates paths with URL path separators', function (t) {
+
+  var foo = {
+    version        :  3,
+    file           :  'bar/foo.js',
+    sourceRoot     :  '',
+    sources        :  [ 'bar\\foo.coffee' ],
+    names          :  [],
+    mappings       :  ';AAAA;CAAA;CAAA,CAAA,CAAA,IAAO,GAAK;CAAZ',
+    sourcesContent :  [ 'console.log(require \'./bar.js\')\n' ] };
+  
+  var mapComment = convert.fromObject(foo).toComment();
+
+  var file = {
+      id: 'xyz'
+    , source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + mapComment
+    , sourceFile: 'bar/foo.js'
+  };
+
+  var lineOffset = 3
+  var base64 = combine.create()
+    .addFile(file, { line: lineOffset })
+    .base64()
+
+  var sm = convert.fromBase64(base64).toObject();
+  var res = checkMappings(foo, sm, lineOffset);
+
+  t.deepEqual(sm.sources, ['bar/foo.coffee'], 'includes relative file ulr path')
+  t.end()
+})
