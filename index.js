@@ -36,7 +36,12 @@ var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath
   relativeRootedPath = relativeRootedPath.replace(/\\/g, '/');
   sourceFile = sourceFile.replace(/\\/g, '/');
 
+  // Ultimately these will be used in URLs so normalise to URL path separators before comparison
+  relativeRootedPath = relativeRootedPath.replace(/\\/g, '/');
+  sourceFile = sourceFile.replace(/\\/g, '/');
+
   if (sourceFile === relativeRootedPath ||    // same path,
+      path.dirname(sourceFile) === path.dirname(relativeRootedPath) || // same dir, different file (e.g. foo.ts > foo.js)
       pathIsAbsolute(relativeRootedPath) ||   // absolute path, nor
       protocolRx.test(relativeRootedPath)) {  // absolute protocol need rebasing
     return relativeRootedPath;
