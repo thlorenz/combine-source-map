@@ -1,9 +1,9 @@
 'use strict';
 
-var convert      =  require('convert-source-map');
-var combine      =  require('..');
+const convert      =  require('convert-source-map');
+const combine      =  require('..');
 
-var foo = { 
+const foo = {
   version        :  3,
   file           :  'foo.js',
   sourceRoot     :  '',
@@ -12,7 +12,7 @@ var foo = {
   mappings       :  ';AAAA;CAAA;CAAA,CAAA,CAAA,IAAO,GAAK;CAAZ',
   sourcesContent :  [ 'console.log(require \'./bar.js\')\n' ] };
 
-var bar = { 
+const bar = {
   version        :  3,
   file           :  'bar.js',
   sourceRoot     :  '',
@@ -22,25 +22,24 @@ var bar = {
   sourcesContent :  [ 'console.log(alert \'alerts suck\')\n' ] };
 
 
-var fooComment = convert.fromObject(foo).toComment();
-var barComment = convert.fromObject(bar).toComment();
+const fooComment = convert.fromObject(foo).toComment();
+const barComment = convert.fromObject(bar).toComment();
 
-var fooFile = {
+const fooFile = {
     source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + fooComment
   , sourceFile: 'foo.js'
 };
-var barFile = {
+const barFile = {
     source: '(function() {\n\n  console.log(alert(\'alerts suck\'));\n\n}).call(this);\n' + '\n' + barComment
   , sourceFile: 'bar.js'
 };
 
-var offset = { line: 2 };
-var base64 = combine
-  .create('bundle.js')
-  .addFile(fooFile, offset)
-  .addFile(barFile, { line: offset.line + 8 })
-  .base64();
+const offset = { line: 2 };
+const map = combine.create('bundle.js');
+await map.addFile(fooFile, offset);
+await map.addFile(barFile, { line: offset.line + 8 });
+const base64 = map.base64();
 
-var sm = convert.fromBase64(base64).toObject();
+const sm = convert.fromBase64(base64).toObject();
 console.log('Combined source maps:\n', sm);
 console.log('\nMappings:\n', sm.mappings);

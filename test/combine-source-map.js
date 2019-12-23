@@ -1,27 +1,27 @@
 'use strict';
 /*jshint asi: true */
 
-var test            =  require('tap').test;
-var convert         =  require('convert-source-map');
-var commentRegex    =  require('convert-source-map').commentRegex;
-var combine         =  require('..');
-var mappingsFromMap =  require('../lib/mappings-from-map');
+const test            =  require('tap').test;
+const convert         =  require('convert-source-map');
+const commentRegex    =  require('convert-source-map').commentRegex;
+const combine         =  require('..');
+const mappingsFromMap =  require('../lib/mappings-from-map');
 
-function checkMappings(foo, sm, lineOffset) {
+async function checkMappings(foo, sm, lineOffset) {
     function inspect(obj, depth) {
         return require('util').inspect(obj, false, depth || 5, true);
     }
 
-    var fooMappings = mappingsFromMap(foo);
-    var mappings = mappingsFromMap(sm);
+    const fooMappings = await mappingsFromMap(foo);
+    const mappings = await mappingsFromMap(sm);
 
-    var genLinesOffset = true;
-    var origLinesSame = true;
-    for (var i = 0; i < mappings.length; i++) {
-        var fooGen = fooMappings[i].generated;
-        var fooOrig = fooMappings[i].original;
-        var gen = mappings[i].generated
-        var orig = mappings[i].original;
+    const genLinesOffset = true;
+    const origLinesSame = true;
+    for (let i = 0; i < mappings.length; i++) {
+        const fooGen = fooMappings[i].generated;
+        const fooOrig = fooMappings[i].original;
+        const gen = mappings[i].generated
+        const orig = mappings[i].original;
 
         if (gen.column !== fooGen.column || gen.line !== (fooGen.line + lineOffset)) {
           console.error(
@@ -46,7 +46,7 @@ function checkMappings(foo, sm, lineOffset) {
     return { genLinesOffset: genLinesOffset, origLinesSame: origLinesSame };
 }
 
-var foo = {
+const foo = {
   version        :  3,
   file           :  'foo.js',
   sourceRoot     :  '',
@@ -55,22 +55,22 @@ var foo = {
   mappings       :  ';AAAA;CAAA;CAAA,CAAA,CAAA,IAAO,GAAK;CAAZ',
   sourcesContent :  [ 'console.log(require \'./bar.js\')\n' ] };
 
-test('add one file with inlined source', function (t) {
+test('add one file with inlined source', async function (t) {
 
-  var mapComment = convert.fromObject(foo).toComment();
-  var file = {
+  const mapComment = convert.fromObject(foo).toComment();
+  const file = {
       id: 'xyz'
     , source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + mapComment
     , sourceFile: 'foo.js'
   };
 
-  var lineOffset = 3
-  var base64 = combine.create()
-    .addFile(file, { line: lineOffset })
-    .base64()
+  const lineOffset = 3
+  const map = combine.create();
+  await map.addFile(file, { line: lineOffset })
+  const base64 = map.base64();
 
-  var sm = convert.fromBase64(base64).toObject();
-  var res = checkMappings(foo, sm, lineOffset);
+  const sm = convert.fromBase64(base64).toObject();
+  const res = await checkMappings(foo, sm, lineOffset);
 
   t.ok(res.genLinesOffset, 'all generated lines are offset properly and columns unchanged')
   t.ok(res.origLinesSame, 'all original lines and columns are unchanged')
@@ -80,26 +80,26 @@ test('add one file with inlined source', function (t) {
 });
 
 
-test('add one file without inlined source', function (t) {
+test('add one file without inlined source', async function (t) {
 
-  var mapComment = convert
+  const mapComment = convert
     .fromObject(foo)
     .setProperty('sourcesContent', [])
     .toComment();
 
-  var file = {
+  const file = {
       id: 'xyz'
     , source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + mapComment
     , sourceFile: 'foo.js'
   };
 
-  var lineOffset = 3
-  var base64 = combine.create()
-    .addFile(file, { line: lineOffset })
-    .base64()
+  const lineOffset = 3
+  const map = combine.create();
+  await map.addFile(file, { line: lineOffset });
+  const base64 = map.base64();
 
-  var sm = convert.fromBase64(base64).toObject();
-  var mappings = mappingsFromMap(sm);
+  const sm = convert.fromBase64(base64).toObject();
+  const mappings = await mappingsFromMap(sm);
 
   t.deepEqual(sm.sourcesContent, [file.source], 'includes the generated source')
   t.deepEqual(sm.sources, ['foo.js'], 'includes generated filename')
@@ -132,8 +132,8 @@ test('add one file without inlined source', function (t) {
   t.end()
 })
 
-test('add one file with inlined sources from multiple files', function(t) {
-  var gen1Map = {
+test('add one file with inlined sources from multiple files', async function(t) {
+  const gen1Map = {
     version: 3,
     sources: [ 'one.js', 'two.js' ],
     names: [],
@@ -141,7 +141,7 @@ test('add one file with inlined sources from multiple files', function(t) {
     sourcesContent: [ 'console.log(1);', 'console.log(2);' ]
   };
 
-  var gen2Map = {
+  const gen2Map = {
     version: 3,
     sources: [ 'three.js', 'four.js' ],
     names: [],
@@ -149,18 +149,18 @@ test('add one file with inlined sources from multiple files', function(t) {
     sourcesContent: [ 'console.log(3);', 'console.log(4);' ]
   };
 
-  var base64 = combine.create()
-    .addFile({
-      source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
-      sourceFile: 'gen1.js'
-    })
-    .addFile({
-      source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
-      sourceFile: 'gen2.js'
-    }, {line: 2})
-    .base64()
+  const map = combine.create();
+  await map.addFile({
+    source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
+    sourceFile: 'gen1.js'
+  });
+  await map.addFile({
+    source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
+    sourceFile: 'gen2.js'
+  }, {line: 2});
+  const base64 = map.base64()
 
-  var sm = convert.fromBase64(base64).toObject();
+  const sm = convert.fromBase64(base64).toObject();
 
 
   t.deepEqual(sm.sources, ['one.js', 'two.js', 'three.js', 'four.js'], 'include the correct source');
@@ -173,7 +173,7 @@ test('add one file with inlined sources from multiple files', function(t) {
   ], 'include the correct source file content');
 
   t.deepEqual(
-      mappingsFromMap(sm)
+      await mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
         source: 'one.js',
@@ -193,7 +193,7 @@ test('add one file with inlined sources from multiple files', function(t) {
   t.end()
 });
 
-test('relative path from multiple files', function(t) {
+test('relative path from multiple files', async function(t) {
   // Folder structure as follows:
   //
   //  project
@@ -215,7 +215,7 @@ test('relative path from multiple files', function(t) {
   // and 'three.js', 'four.js' were combined to 'gen2.js'.
   // Now 'gen1.js' and 'gen2.js' are being combined from
   // the project root folder.
-  var gen1Map = {
+  const gen1Map = {
     version: 3,
     sources: [ 'sub/one.js', 'sub/two.js' ],
     names: [],
@@ -224,7 +224,7 @@ test('relative path from multiple files', function(t) {
     sourceRoot: '../src/package1'
   };
 
-  var gen2Map = {
+  const gen2Map = {
     version: 3,
     sources: [ 'sub/three.js', 'sub/four.js' ],
     names: [],
@@ -233,21 +233,21 @@ test('relative path from multiple files', function(t) {
     sourceRoot: '../src/package2'
   };
 
-  var base64 = combine.create()
-    .addFile({
-      source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
-      sourceFile: 'gen/gen1.js'
-    })
-    .addFile({
-      source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
-      sourceFile: 'gen/gen2.js'
-    }, {line: 2})
-    .base64()
+  const map = combine.create()
+  await map.addFile({
+    source: 'console.log(1);\nconsole.log(2);\n' + convert.fromObject(gen1Map).toComment(),
+    sourceFile: 'gen/gen1.js'
+  });
+  await map.addFile({
+    source: 'console.log(3);\nconsole.log(4);\n' + convert.fromObject(gen2Map).toComment(),
+    sourceFile: 'gen/gen2.js'
+  }, {line: 2});
+  const base64 = map.base64();
 
-  var sm = convert.fromBase64(base64).toObject();
+  const sm = convert.fromBase64(base64).toObject();
 
-  t.deepEqual(sm.sources, ['src/package1/sub/one.js', 'src/package1/sub/two.js', 
-    'src/package2/sub/three.js', 'src/package2/sub/four.js'], 
+  t.deepEqual(sm.sources, ['src/package1/sub/one.js', 'src/package1/sub/two.js',
+    'src/package2/sub/three.js', 'src/package2/sub/four.js'],
     'include the correct source');
 
   t.deepEqual(sm.sourcesContent, [
@@ -258,7 +258,7 @@ test('relative path from multiple files', function(t) {
   ], 'include the correct source file content');
 
   t.deepEqual(
-      mappingsFromMap(sm)
+      await mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
         source: 'src/package1/sub/one.js',
@@ -278,8 +278,8 @@ test('relative path from multiple files', function(t) {
   t.end()
 });
 
-test('relative path when source and file name are the same', function(t) {
-  var gen1Map = {
+test('relative path when source and file name are the same', async function(t) {
+  const gen1Map = {
     version: 3,
     sources: [ 'a/b/one.js' ],
     names: [],
@@ -288,7 +288,7 @@ test('relative path when source and file name are the same', function(t) {
     sourcesContent: [ 'console.log(1);\n' ]
   };
 
-  var gen2Map = {
+  const gen2Map = {
     version: 3,
     sources: [ 'a/b/two.js' ],
     names: [],
@@ -297,24 +297,24 @@ test('relative path when source and file name are the same', function(t) {
     sourcesContent: [ 'console.log(2);\n' ]
   };
 
-  var base64 = combine.create()
-    .addFile({
-      source: 'console.log(1);\n' + convert.fromObject(gen1Map).toComment(),
-      sourceFile: 'a/b/one.js'
-    })
-    .addFile({
-      source: 'console.log(2);\n' + convert.fromObject(gen2Map).toComment(),
-      sourceFile: 'a/b/two.js'
-    }, {line: 1})
-    .base64()
+  const map = combine.create();
+  await map.addFile({
+    source: 'console.log(1);\n' + convert.fromObject(gen1Map).toComment(),
+    sourceFile: 'a/b/one.js'
+  });
+  await map.addFile({
+    source: 'console.log(2);\n' + convert.fromObject(gen2Map).toComment(),
+    sourceFile: 'a/b/two.js'
+  }, {line: 1});
+  const base64 = map.base64();
 
-  var sm = convert.fromBase64(base64).toObject();
+  const sm = convert.fromBase64(base64).toObject();
 
   t.deepEqual(sm.sources, ['a/b/one.js', 'a/b/two.js'],
     'include the correct source');
 
   t.deepEqual(
-      mappingsFromMap(sm)
+      await mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
         source: 'a/b/one.js',
@@ -327,20 +327,20 @@ test('relative path when source and file name are the same', function(t) {
 });
 
 test('remove comments', function (t) {
-  var mapComment = convert.fromObject(foo).toComment();
+  const mapComment = convert.fromObject(foo).toComment();
 
   function sourcemapComments(src) {
-    var matches = src.match(commentRegex);
+    const matches = src.match(commentRegex);
     return matches ? matches.length : 0;
   }
 
-  t.equal(sourcemapComments('var a = 1;\n' + mapComment), 1);
+  t.equal(sourcemapComments('const a = 1;\n' + mapComment), 1);
 
   [ ''
-  , 'var a = 1;\n' + mapComment
-  , 'var a = 1;\n' + mapComment + '\nvar b = 5;\n' + mapComment
+  , 'const a = 1;\n' + mapComment
+  , 'const a = 1;\n' + mapComment + '\nconst b = 5;\n' + mapComment
   ] .forEach(function (x) {
-    var removed = combine.removeComments(x)
+    const removed = combine.removeComments(x)
     t.equal(sourcemapComments(removed), 0)
   })
   t.end()
