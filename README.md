@@ -3,29 +3,28 @@
 Add source maps of multiple files, offset them and then combine them into one source map.
 
 ```js
-var convert = require('convert-source-map');
-var combine = require('combine-source-map');
+const convert = require('convert-source-map');
+const combine = require('combine-source-map');
 
-var fooComment = '//# sourceMappingURL=data:application/json;base64,eyJ2Z [..] pzJylcbiJdfQ==';
-var barComment = '//# sourceMappingURL=data:application/json;base64,eyJ2Z [..] VjaycpXG4iXX0=';
+const fooComment = '//# sourceMappingURL=data:application/json;base64,eyJ2Z [..] pzJylcbiJdfQ==';
+const barComment = '//# sourceMappingURL=data:application/json;base64,eyJ2Z [..] VjaycpXG4iXX0=';
 
-var fooFile = {
+const fooFile = {
     source: '(function() {\n\n  console.log(require(\'./bar.js\'));\n\n}).call(this);\n' + '\n' + fooComment
   , sourceFile: 'foo.js'
 };
-var barFile = {
+const barFile = {
     source: '(function() {\n\n  console.log(alert(\'alerts suck\'));\n\n}).call(this);\n' + '\n' + barComment
   , sourceFile: 'bar.js'
 };
 
-var offset = { line: 2 };
-var base64 = combine
-  .create('bundle.js')
-  .addFile(fooFile, offset)
-  .addFile(barFile, { line: offset.line + 8 })
-  .base64();
+const offset = { line: 2 };
+const map = combine.create('bundle.js');
+await map.addFile(fooFile, offset)
+await map.addFile(barFile, { line: offset.line + 8 })
+const base64 = map.base64();
 
-var sm = convert.fromBase64(base64).toObject();
+const sm = convert.fromBase64(base64).toObject();
 console.log(sm);
 ```
 
@@ -66,7 +65,7 @@ console.log(sm);
  * If source contains a source map comment that has the source of the original file inlined it will offset these
  * mappings and include them.
  * If no source map comment is found or it has no source inlined, mappings for the file will be generated and included
- * 
+ *
  * @name addMap
  * @function
  * @param opts {Object} { sourceFile: {String}, source: {String} }
@@ -100,12 +99,12 @@ console.log(sm);
 /**
  * @name removeComments
  * @function
- * @param src 
+ * @param src
  * @return {String} src with all sourceMappingUrl comments removed
  */
 ```
 
-## Example 
+## Example
 
-Read and run the [more elaborate example](https://github.com/thlorenz/combine-source-map/blob/master/example/two-files.js) 
+Read and run the [more elaborate example](https://github.com/thlorenz/combine-source-map/blob/master/example/two-files.js)
 in order to get a better idea how things work.

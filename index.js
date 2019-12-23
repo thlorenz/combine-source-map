@@ -1,13 +1,13 @@
 'use strict';
 
-var path            =  require('path');
-var convert         =  require('convert-source-map');
-var memoize         =  require('lodash.memoize');
-var createGenerator =  require('inline-source-map');
-var pathIsAbsolute  =  require('./lib/path-is-absolute');
-var mappingsFromMap =  require('./lib/mappings-from-map');
+const path            =  require('path');
+const convert         =  require('convert-source-map');
+const memoize         =  require('lodash.memoize');
+const createGenerator =  require('inline-source-map');
+const pathIsAbsolute  =  require('./lib/path-is-absolute');
+const mappingsFromMap =  require('./lib/mappings-from-map');
 
-var protocolRx = /^[a-z]+:\/\//;
+const protocolRx = /^[a-z]+:\/\//;
 
 /**
  * Rebases a relative path in 'sourceFile' to be relative
@@ -26,13 +26,13 @@ var protocolRx = /^[a-z]+:\/\//;
  * @param relativeRoot {String} sourceRoot in sourceFile's map to combine with relativePath
  * @param relativePath {String} source path from sourceFile's map
  */
-var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath) {
+const rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath) {
   if (!relativePath) {
     return relativePath;
   }
 
   // join relative path to root (e.g. 'src/' + 'file.js')
-  var relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
+  let relativeRootedPath = relativeRoot ? path.join(relativeRoot, relativePath) : relativePath;
   relativeRootedPath = relativeRootedPath.replace(/\\/g, '/');
   sourceFile = sourceFile.replace(/\\/g, '/');
 
@@ -49,7 +49,7 @@ var rebaseRelativePath = memoize(function(sourceFile, relativeRoot, relativePath
 });
 
 function resolveMap(source) {
-  var gen = convert.fromSource(source);
+  const gen = convert.fromSource(source);
   return gen ? gen.toObject() : null;
 }
 
@@ -68,11 +68,11 @@ Combiner.prototype._addGeneratedMap = function (sourceFile, source, offset) {
   return this;
 };
 
-Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, offset) {
-  var mappings = mappingsFromMap(existingMap);
+Combiner.prototype._addExistingMap = async function (sourceFile, source, existingMap, offset) {
+  const mappings = await mappingsFromMap(existingMap);
 
   // add all of the sources from the map
-  for (var i = 0, len = existingMap.sources.length; i < len; i++) {
+  for (let i = 0, len = existingMap.sources.length; i < len; i++) {
     if (!existingMap.sourcesContent) continue;
 
     this.generator.addSourceContent(
@@ -103,16 +103,16 @@ Combiner.prototype._addExistingMap = function (sourceFile, source, existingMap, 
  * @param opts {Object} { sourceFile: {String}, source: {String} }
  * @param offset {Object} { line: {Number}, column: {Number} }
  */
-Combiner.prototype.addFile = function (opts, offset) {
+Combiner.prototype.addFile = async function (opts, offset) {
 
   offset = offset || {};
   if (!offset.hasOwnProperty('line'))  offset.line    =  0;
   if (!offset.hasOwnProperty('column')) offset.column =  0;
 
-  var existingMap = resolveMap(opts.source);
+  const existingMap = resolveMap(opts.source);
 
   return existingMap && hasInlinedSource(existingMap)
-    ? this._addExistingMap(opts.sourceFile, opts.source, existingMap, offset)
+    ? await this._addExistingMap(opts.sourceFile, opts.source, existingMap, offset)
     : this._addGeneratedMap(opts.sourceFile, opts.source, offset);
 };
 
