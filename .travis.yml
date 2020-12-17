@@ -6,6 +6,6 @@ arch:
 node_js:
   - "10"
   - "12"
-  - "iojs-v2.4"
+  - "iojs"
 before_install:
   - npm install --global npm
