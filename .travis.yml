@@ -1,8 +1,10 @@
 sudo: false
 language: node_js
+arch:
+  - amd64
+  - ppc64le
 node_js:
-  - "0.10"
-  - "0.12"
-  - "iojs-v2.4"
+  - "10"
+  - "12"
 before_install:
   - npm install --global npm
