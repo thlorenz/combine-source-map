@@ -74,8 +74,8 @@ test('add one file with inlined source', function (t) {
 
   t.ok(res.genLinesOffset, 'all generated lines are offset properly and columns unchanged')
   t.ok(res.origLinesSame, 'all original lines and columns are unchanged')
-  t.deepEqual(sm.sourcesContent, foo.sourcesContent, 'includes the original source')
-  t.deepEqual(sm.sources, ['foo.coffee'], 'includes original filename')
+  t.same(sm.sourcesContent, foo.sourcesContent, 'includes the original source')
+  t.same(sm.sources, ['foo.coffee'], 'includes original filename')
   t.end()
 });
 
@@ -101,10 +101,10 @@ test('add one file without inlined source', function (t) {
   var sm = convert.fromBase64(base64).toObject();
   var mappings = mappingsFromMap(sm);
 
-  t.deepEqual(sm.sourcesContent, [file.source], 'includes the generated source')
-  t.deepEqual(sm.sources, ['foo.js'], 'includes generated filename')
+  t.same(sm.sourcesContent, [file.source], 'includes the generated source')
+  t.same(sm.sources, ['foo.js'], 'includes generated filename')
 
-  t.deepEqual(
+  t.same(
       mappings
     , [ { generated: { line: 4, column: 0 },
         original: { line: 1, column: 0 },
@@ -163,16 +163,16 @@ test('add one file with inlined sources from multiple files', function(t) {
   var sm = convert.fromBase64(base64).toObject();
 
 
-  t.deepEqual(sm.sources, ['one.js', 'two.js', 'three.js', 'four.js'], 'include the correct source');
+  t.same(sm.sources, ['one.js', 'two.js', 'three.js', 'four.js'], 'include the correct source');
 
-  t.deepEqual(sm.sourcesContent, [
+  t.same(sm.sourcesContent, [
     'console.log(1);',
     'console.log(2);',
     'console.log(3);',
     'console.log(4);'
   ], 'include the correct source file content');
 
-  t.deepEqual(
+  t.same(
       mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
@@ -246,18 +246,18 @@ test('relative path from multiple files', function(t) {
 
   var sm = convert.fromBase64(base64).toObject();
 
-  t.deepEqual(sm.sources, ['src/package1/sub/one.js', 'src/package1/sub/two.js', 
+  t.same(sm.sources, ['src/package1/sub/one.js', 'src/package1/sub/two.js', 
     'src/package2/sub/three.js', 'src/package2/sub/four.js'], 
     'include the correct source');
 
-  t.deepEqual(sm.sourcesContent, [
+  t.same(sm.sourcesContent, [
     'console.log(1);',
     'console.log(2);',
     'console.log(3);',
     'console.log(4);'
   ], 'include the correct source file content');
 
-  t.deepEqual(
+  t.same(
       mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
@@ -310,10 +310,10 @@ test('relative path when source and file name are the same', function(t) {
 
   var sm = convert.fromBase64(base64).toObject();
 
-  t.deepEqual(sm.sources, ['a/b/one.js', 'a/b/two.js'],
+  t.same(sm.sources, ['a/b/one.js', 'a/b/two.js'],
     'include the correct source');
 
-  t.deepEqual(
+  t.same(
       mappingsFromMap(sm)
     , [ { original: { column: 0, line: 1 },
         generated: { column: 0, line: 1 },
